@@ -715,7 +715,7 @@ func cloneSubgraph(ctx context.Context, s *dolt.DoltStore, subgraph *TemplateSub
 	idMapping := make(map[string]string)
 
 	// Use transaction for atomicity
-	err := s.RunInTransaction(ctx, func(tx storage.Transaction) error {
+	err := s.RunInTransaction(ctx, "mol: spawn from template", func(tx storage.Transaction) error {
 		// First pass: create all issues with new IDs
 		for _, oldIssue := range subgraph.Issues {
 			// Determine assignee: use override for root epic, otherwise keep template's

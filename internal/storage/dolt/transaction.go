@@ -25,12 +25,15 @@ func (t *doltTransaction) CreateIssueImport(ctx context.Context, issue *types.Is
 }
 
 // RunInTransaction executes a function within a database transaction.
+// The commitMsg is used for the DOLT_COMMIT inside the transaction, ensuring
+// writes are atomically committed to Dolt's version history and cannot be
+// inadvertently included in another connection's commit.
 // Wisp routing is handled within individual transaction methods based on ID/Ephemeral flag.
-func (s *DoltStore) RunInTransaction(ctx context.Context, fn func(tx storage.Transaction) error) error {
-	return s.runDoltTransaction(ctx, fn)
+func (s *DoltStore) RunInTransaction(ctx context.Context, commitMsg string, fn func(tx storage.Transaction) error) error {
+	return s.runDoltTransaction(ctx, commitMsg, fn)
 }
 
-func (s *DoltStore) runDoltTransaction(ctx context.Context, fn func(tx storage.Transaction) error) error {
+func (s *DoltStore) runDoltTransaction(ctx context.Context, commitMsg string, fn func(tx storage.Transaction) error) error {
 	sqlTx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -48,6 +51,22 @@ func (s *DoltStore) runDoltTransaction(ctx context.Context, fn func(tx storage.T
 	if err := fn(tx); err != nil {
 		_ = sqlTx.Rollback() // Best effort rollback on error path
 		return err
+	}
+
+	// DOLT_COMMIT inside the SQL transaction — atomic with the writes.
+	// This prevents cross-connection write contamination where another
+	// connection could inadvertently commit our uncommitted working set changes.
+	if commitMsg != "" {
+		_, err = sqlTx.ExecContext(ctx, "CALL DOLT_COMMIT('-Am', ?, '--author', ?)",
+			commitMsg, s.commitAuthorString())
+		if err != nil {
+			errLower := strings.ToLower(err.Error())
+			if !strings.Contains(errLower, "nothing to commit") && !strings.Contains(errLower, "no changes") {
+				_ = sqlTx.Rollback()
+				return fmt.Errorf("failed to dolt commit: %w", err)
+			}
+			// "nothing to commit" is benign — the fn may have been a no-op
+		}
 	}
 
 	return sqlTx.Commit()

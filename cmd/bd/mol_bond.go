@@ -292,7 +292,7 @@ func bondProtoProto(ctx context.Context, s *dolt.DoltStore, protoA, protoB *type
 	}
 
 	var compoundID string
-	err := s.RunInTransaction(ctx, func(tx storage.Transaction) error {
+	err := s.RunInTransaction(ctx, "bond: create compound proto", func(tx storage.Transaction) error {
 		// Create compound root issue
 		compound := &types.Issue{
 			Title:       compoundTitle,
@@ -427,7 +427,7 @@ func bondProtoMolWithSubgraph(ctx context.Context, s *dolt.DoltStore, protoSubgr
 	}
 
 	// Attach spawned molecule to existing molecule
-	err = s.RunInTransaction(ctx, func(tx storage.Transaction) error {
+	err = s.RunInTransaction(ctx, "bond: attach proto to molecule", func(tx storage.Transaction) error {
 		// Add dependency from spawned root to molecule
 		// Sequential: use blocks (B runs after A completes)
 		// Conditional: use conditional-blocks (B runs only if A fails)
@@ -473,7 +473,7 @@ func bondMolProto(ctx context.Context, s *dolt.DoltStore, mol, proto *types.Issu
 
 // bondMolMol bonds two molecules together
 func bondMolMol(ctx context.Context, s *dolt.DoltStore, molA, molB *types.Issue, bondType, actorName string) (*BondResult, error) {
-	err := s.RunInTransaction(ctx, func(tx storage.Transaction) error {
+	err := s.RunInTransaction(ctx, "bond: link molecules", func(tx storage.Transaction) error {
 		// Add dependency: B links to A
 		// Sequential: use blocks (B runs after A completes)
 		// Conditional: use conditional-blocks (B runs only if A fails)

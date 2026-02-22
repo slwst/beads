@@ -250,7 +250,7 @@ func squashMolecule(ctx context.Context, s *dolt.DoltStore, root *types.Issue, c
 	}
 
 	// Use transaction for atomicity
-	err := s.RunInTransaction(ctx, func(tx storage.Transaction) error {
+	err := s.RunInTransaction(ctx, "mol: squash to digest", func(tx storage.Transaction) error {
 		// Create digest issue
 		if err := tx.CreateIssue(ctx, digestIssue, actorName); err != nil {
 			return fmt.Errorf("failed to create digest issue: %w", err)

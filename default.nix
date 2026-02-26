@@ -9,7 +9,7 @@ pkgs.buildGoModule {
   subPackages = [ "cmd/bd" ];
   doCheck = false;
   # Go module dependencies hash - if build fails with hash mismatch, update with the "got:" value
-  vendorHash = "sha256-deLPoWXRsWAyehUn2QlXA/vs7zepUF3jAjUq+MFCGbI=";
+  vendorHash = "sha256-cMvxGJBMUszIbWwBNmWe+ws4m3mfyEZgapxVYNYc5c4=";
 
   # Relax go.mod version for Nix: nixpkgs Go may lag behind the latest
   # patch release, and GOTOOLCHAIN=auto can't download in the Nix sandbox.
@@ -21,6 +21,7 @@ pkgs.buildGoModule {
   # Allow patch-level toolchain upgrades when a dependency's minimum Go patch
   # version is newer than nixpkgs' bundled patch version.
   env.GOTOOLCHAIN = "auto";
+  env.CGO_ENABLED = 0;
 
   # Git is required for tests
   nativeBuildInputs = [ pkgs.git ];

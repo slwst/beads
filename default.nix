@@ -21,7 +21,8 @@ pkgs.buildGoModule {
   # Allow patch-level toolchain upgrades when a dependency's minimum Go patch
   # version is newer than nixpkgs' bundled patch version.
   env.GOTOOLCHAIN = "auto";
-  env.CGO_ENABLED = 0;
+
+  buildInputs = [ pkgs.icu ];
 
   # Git is required for tests
   nativeBuildInputs = [ pkgs.git ];

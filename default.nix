@@ -1,11 +1,12 @@
 {
   lib,
   self,
-  buildGoModule,
+  buildGoLatestModule,
   git,
+  pkgs,
   ...
 }:
-buildGoModule {
+buildGoLatestModule rec {
   pname = "beads";
   version = "0.60.0";
 
@@ -16,13 +17,17 @@ buildGoModule {
   doCheck = false;
 
   # Go module dependencies hash - if build fails with hash mismatch, update with the "got:" value
-  vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  vendorHash = "sha256-1BJsEPP5SYZFGCWHLn532IUKlzcGDg5nhrqGWylEHgY=";
+
+  ldflags = [
+    "-X main.Build=${version}"
+  ];
 
   # Relax go.mod version for Nix: nixpkgs Go may lag behind the latest
   # patch release, and GOTOOLCHAIN=auto can't download in the Nix sandbox.
   postPatch = ''
     goVer="$(go env GOVERSION | sed 's/^go//')"
-    go mod edit -go="$goVer"
+    sed -i "s/^go .*/go $goVer/" go.mod
   '';
 
   # Allow patch-level toolchain upgrades when a dependency's minimum Go patch
@@ -30,6 +35,7 @@ buildGoModule {
   env.GOTOOLCHAIN = "auto";
 
   # Git is required for tests
+  buildInputs = [ pkgs.icu ];
   nativeBuildInputs = [ git ];
 
   meta = with lib; {

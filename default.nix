@@ -3,6 +3,7 @@
   self,
   buildGoModule,
   git,
+  pkgs,
   ...
 }:
 buildGoModule {
@@ -16,7 +17,7 @@ buildGoModule {
   doCheck = false;
 
   # Go module dependencies hash - if build fails with hash mismatch, update with the "got:" value
-  vendorHash = "sha256-1BJsEPP5SYZFGCWHLn532IUKlzcGDg5nhrqGWylEHgY=";
+  vendorHash = "sha256-GYPfvsI8eNJbdzrbO7YnMkN2Yt6KZNB7w/2SJD2WdFY=";
 
   # Relax go.mod version for Nix: nixpkgs Go may lag behind the latest
   # patch release, and GOTOOLCHAIN=auto can't download in the Nix sandbox.
@@ -30,6 +31,7 @@ buildGoModule {
   env.GOTOOLCHAIN = "auto";
 
   # Git is required for tests
+  buildInputs = [ pkgs.icu ];
   nativeBuildInputs = [ git ];
 
   meta = with lib; {
